@@ -14,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -122,6 +123,10 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Label txfProcesseurPrix;
     
+    public String path;
+    
+    public String nomFic;
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbCategorie.getItems().addAll("Jeux", "Processeur","Automobile","Skateboard", "Divers");
@@ -144,7 +149,13 @@ public class FXMLDocumentController implements Initializable {
     }
 
     @FXML
-    private void mniOuvrirAction(ActionEvent event) {
+    private void mniOuvrirAction(ActionEvent event) throws FileNotFoundException, IOException, ClassNotFoundException {
+        FileInputStream fis = new FileInputStream("Inventaire.dat");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        ArrayList<Inventaire> list = (ArrayList<Inventaire>) ois.readObject();
+        liste = FXCollections.observableList(list);
+        tbvClasse.setItems(liste);
+        tbvInventaireNom.setItems(liste);
     }
 
     @FXML
@@ -152,7 +163,11 @@ public class FXMLDocumentController implements Initializable {
     }
 
     @FXML
-    private void mniEnregistrerAction(ActionEvent event) {
+    private void mniEnregistrerAction(ActionEvent event) throws FileNotFoundException, IOException {
+        FileOutputStream fos = new FileOutputStream("Inventaire.dat");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(new ArrayList<>(liste));
+        oos.close();
     }
 
     @FXML
@@ -163,7 +178,9 @@ public class FXMLDocumentController implements Initializable {
         File fichier = fc.showOpenDialog(null);
         ObjectOutputStream sortie = new ObjectOutputStream(new FileOutputStream(fichier)); 
         sortie.writeObject(liste);
-        sortie.close();                
+        sortie.close(); 
+        path = fichier.getAbsolutePath();
+        nomFic = fichier.getName();
     }
 
     @FXML
