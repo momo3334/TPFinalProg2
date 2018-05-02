@@ -15,10 +15,28 @@ import java.util.TreeMap;
 public class Inventaire {
     private String nom;
     private String categorie;
-    private String autre;
     private LocalDate dateAchat;
     private double prix;
+    private String autre;
     private TreeMap entretiens;
+    
+    public Inventaire(String nom, String categorie, double prix, LocalDate dateAchat, String autre) {
+        this.nom = nom;
+        this.categorie = categorie;
+        this.dateAchat = dateAchat;
+        this.prix = prix;
+        this.autre = autre;
+    }
+
+    public String getAutre() {
+        return autre;
+    }
+
+    public void setAutre(String autre) {
+        this.autre = autre;
+    }
+    
+    
 
     public String getNom() {
         return nom;
@@ -57,14 +75,4 @@ public class Inventaire {
     public String toString() {
         return null;
     }
-
-    public Inventaire(String nom, String categorie, LocalDate dateAchat, double prix, TreeMap entretiens) {
-        this.nom = nom;
-        this.categorie = categorie;
-        this.dateAchat = dateAchat;
-        this.prix = prix;
-        this.entretiens = entretiens;
-        this.autre = autre;
-    }
-
 }
