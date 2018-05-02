@@ -5,6 +5,13 @@
  */
 package tp2;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
@@ -28,6 +35,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.stage.FileChooser;
 
 /**
  * FXML Controller class
@@ -54,8 +62,6 @@ public class FXMLDocumentController implements Initializable {
     private Label txfTotal;
     @FXML
     private Label txfJeuxPrix;
-    @FXML
-    private Label txfProcessuerPrix;
     @FXML
     private Label txfAutomobilePrix;
     @FXML
@@ -108,18 +114,13 @@ public class FXMLDocumentController implements Initializable {
     private TextArea txaAutre;
     
     public ObservableList<Inventaire> liste = FXCollections.observableArrayList();
-    public int compteurJeux = 0;
-    public int compteurProcesseur = 0;
-    public int compteurAutomobile = 0;
-    public int compteurSkateboard = 0;
-    public int compteurDivers = 0;
-    public int compteurJeuxPrix = 0;
-    public int compteurProcesseurPrix = 0;
-    public int compteurAutomobilePrix = 0;
-    public int compteurSkateboardPrix = 0;
-    public int compteurDiversPrix = 0;
+    
+    
+    
     @FXML
     private Label lblChamp;
+    @FXML
+    private Label txfProcesseurPrix;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -155,7 +156,14 @@ public class FXMLDocumentController implements Initializable {
     }
 
     @FXML
-    private void mniEnregistrerSousAction(ActionEvent event) {
+    private void mniEnregistrerSousAction(ActionEvent event) throws FileNotFoundException, IOException {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
+        fc.setTitle("Choisir ou sauvegarder le fichier");
+        File fichier = fc.showOpenDialog(null);
+        ObjectOutputStream sortie = new ObjectOutputStream(new FileOutputStream(fichier)); 
+        sortie.writeObject(liste);
+        sortie.close();                
     }
 
     @FXML
@@ -173,7 +181,19 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void btnAjouter(ActionEvent event) {
-        
+        int total;
+        double totalPrix;
+        double totalJeuxPrix = 0;
+        double totalProcesseurPrix = 0;
+        double totalAutomobilePrix = 0;
+        double totalSkateboardPrix = 0;
+        double totalDiversPrix = 0;
+        int compteurJeux = 0;
+        int compteurProcesseur = 0;
+        int compteurAutomobile = 0;
+        int compteurSkateboard = 0;
+        int compteurDivers = 0;
+
         LocalDate date = dtpDate.getValue();
         if (!txfNom.getText().isEmpty() && !cmbCategorie.getSelectionModel().getSelectedItem().isEmpty() && !txfValeur.getText().isEmpty() && date != null) {
             liste.add(new Inventaire(txfNom.getText(), cmbCategorie.getSelectionModel().getSelectedItem(), Double.parseDouble(txfValeur.getText()), date, txfAutre.getText()));
@@ -192,18 +212,36 @@ public class FXMLDocumentController implements Initializable {
         for(Inventaire inv : liste){
             String cat = inv.getCategorie();
             if (cat.equals("Jeux")) {
-                compteurJeuxPrix += inv.getPrix();
+                totalJeuxPrix += inv.getPrix();
+                compteurJeux++;
             }else if(cat.equals("Processeur")){
-                 compteurProcesseurPrix += inv.getPrix();
+                totalProcesseurPrix += inv.getPrix();
+                compteurProcesseur++;
             }else if(cat.equals("Automobile")){
-                 compteurAutomobilePrix += inv.getPrix();
+                totalAutomobilePrix += inv.getPrix();
+                compteurAutomobile++;
             }else if(cat.equals("Skateboard")){
-                 compteurSkateboardPrix += inv.getPrix();
+                totalSkateboardPrix += inv.getPrix();
+                compteurSkateboard++;
             }else{
-                
+                totalDiversPrix += inv.getPrix();
+                compteurDivers++;
             }
-                
         }
+        txfJeux.setText(String.valueOf(compteurJeux));
+        txfJeuxPrix.setText(String.valueOf(totalJeuxPrix));
+        txfProcesseur.setText(String.valueOf(compteurProcesseur));
+        txfProcesseurPrix.setText(String.valueOf(totalProcesseurPrix));
+        txfAutomobile.setText(String.valueOf(compteurAutomobile));
+        txfAutomobilePrix.setText(String.valueOf(totalAutomobilePrix));
+        txfSkateboard.setText(String.valueOf(compteurSkateboard));
+        txfSkateboardPrix.setText(String.valueOf(totalSkateboardPrix));
+        txfDivers.setText(String.valueOf(compteurDivers));
+        txfDiversPrix.setText(String.valueOf(totalDiversPrix));
+        total = compteurJeux + compteurProcesseur + compteurAutomobile + compteurSkateboard + compteurDivers; 
+        txfTotal.setText(String.valueOf(total));
+        totalPrix = totalJeuxPrix + totalProcesseurPrix + totalAutomobilePrix + totalSkateboardPrix + totalDiversPrix;
+        txfTotalPrix.setText(String.valueOf(totalPrix));
     }
 
     @FXML

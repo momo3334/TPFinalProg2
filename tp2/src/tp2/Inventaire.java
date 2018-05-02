@@ -5,6 +5,7 @@
  */
 package tp2;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.TreeMap;
 
@@ -12,7 +13,7 @@ import java.util.TreeMap;
  *
  * @author usager
  */
-public class Inventaire {
+public class Inventaire implements Serializable{
     private String nom;
     private String categorie;
     private LocalDate dateAchat;
