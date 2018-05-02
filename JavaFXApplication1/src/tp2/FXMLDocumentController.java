@@ -84,9 +84,9 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Tab tbpEntretiens;
     @FXML
-    private TableView<?> tbvInventaireNom;
+    private TableView tbvInventaireNom;
     @FXML
-    private TableColumn<?, ?> tbvNom2;
+    private TableColumn<Inventaire, String> tbvNom2;
     @FXML
     private TextField txfCategorie2;
     @FXML
