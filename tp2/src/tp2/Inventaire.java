@@ -19,7 +19,7 @@ public class Inventaire implements Serializable{
     private LocalDate dateAchat;
     private double prix;
     private String autre;
-    private TreeMap entretiens;
+    private TreeMap<LocalDate, String> entretiens;
     
     public Inventaire(String nom, String categorie, double prix, LocalDate dateAchat, String autre) {
         this.nom = nom;
@@ -27,6 +27,7 @@ public class Inventaire implements Serializable{
         this.dateAchat = dateAchat;
         this.prix = prix;
         this.autre = autre;
+        this.entretiens = new TreeMap();
     }
 
     public String getAutre() {
@@ -36,8 +37,6 @@ public class Inventaire implements Serializable{
     public void setAutre(String autre) {
         this.autre = autre;
     }
-    
-    
 
     public String getNom() {
         return nom;
@@ -70,10 +69,12 @@ public class Inventaire implements Serializable{
     public void setPrix(double prix) {
         this.prix = prix;
     }
-
-    //CODE TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    @Override
-    public String toString() {
-        return null;
+    
+    public void ajouterEntretiens(LocalDate date, String details){
+        entretiens.put(date, autre);
+    }
+    
+    public void supprimerEntretiens(LocalDate key){
+        entretiens.remove(key);
     }
 }
