@@ -134,6 +134,8 @@ public class FXMLDocumentController implements Initializable {
     
     public String nomFic = "";
     
+    public boolean enregistrer = false;
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbCategorie.getItems().addAll("Jeux", "Processeur","Automobile","Skateboard", "Divers");
@@ -167,6 +169,7 @@ public class FXMLDocumentController implements Initializable {
         fc.setInitialDirectory(new File("fichiers"));
         File fichier = fc.showOpenDialog(null);
         if (fichier != null) {
+            path = fichier.getAbsolutePath();
             FileInputStream fis = new FileInputStream(fichier);
             ObjectInputStream ois = new ObjectInputStream(fis);
             ArrayList<Inventaire> list = (ArrayList<Inventaire>) ois.readObject();
@@ -174,11 +177,30 @@ public class FXMLDocumentController implements Initializable {
             tbvClasse.setItems(liste);
             tbvInventaireNom.setItems(liste);
             ois.close();
+            enregistrer = true;
         }
+
+        compteurs();
     }
 
     @FXML
-    private void mniFermerAction(ActionEvent event) {
+    private void mniFermerAction(ActionEvent event) throws IOException {
+        Alert  alerte = new Alert(AlertType.CONFIRMATION);
+        alerte.setTitle("Attention");
+        alerte.setHeaderText("Confirmation de fermeture du programme");
+        alerte.setContentText("Veuillez enregistrer votre inventaire avant de fermer.");
+        Optional<ButtonType> result = alerte.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == false) {
+            mniEnregistrerSousAction(event);
+            enregistrer = true;
+            liste.clear();
+            compteurs();
+        }else if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == true){
+            mniEnregistrerAction(event);
+            enregistrer = true;
+            liste.clear();
+            compteurs();
+        }
     }
     
     /**
@@ -206,6 +228,7 @@ public class FXMLDocumentController implements Initializable {
             oos.writeObject(new ArrayList<>(liste));
             oos.close();
         }
+        enregistrer = true;
         
     }
     
@@ -217,7 +240,7 @@ public class FXMLDocumentController implements Initializable {
     private void mniEnregistrerSousAction(ActionEvent event) throws FileNotFoundException, IOException {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
-        fc.setTitle("Choisir où sauvegarder le fichier");
+        fc.setTitle("Choisir ou sauvegarder le fichier");
         fc.setInitialDirectory(new File("fichiers"));
         File fichier = fc.showSaveDialog(null);
         if (fichier != null) {
@@ -226,11 +249,28 @@ public class FXMLDocumentController implements Initializable {
             sortie.close(); 
             path = fichier.getAbsolutePath();
             nomFic = fichier.getName();
-        } 
+        }
+        enregistrer = true;
     }
 
     @FXML
-    private void mniQuitterAction(ActionEvent event) {
+    private void mniQuitterAction(ActionEvent event) throws IOException {
+        Alert  alerte = new Alert(AlertType.CONFIRMATION);
+        alerte.setTitle("Attention");
+        alerte.setHeaderText("Confirmation de fermeture du programme");
+        alerte.setContentText("Veuillez enregistrer votre inventaire avant de quitter.");
+        Optional<ButtonType> result = alerte.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == false) {
+            mniEnregistrerSousAction(event);
+            enregistrer = true;
+            Platform.exit();
+        }else if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == true){
+            mniEnregistrerAction(event);
+            enregistrer = true;
+            Platform.exit();
+        }else if (result.isPresent() && result.get() == ButtonType.CANCEL){
+            Platform.exit();
+        }
     }
 
     @FXML
@@ -309,9 +349,8 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void btnAjouter2(ActionEvent event) {
-        
     }
-//------------------------------Modification------------------------------------
+
     @FXML
     private void tbvNomEdit(CellEditEvent event) {
     }
@@ -398,5 +437,15 @@ public class FXMLDocumentController implements Initializable {
             String value = map.getValue();
             lsvAutre.getItems().add(key + "   " + value);
         }      
-    }    
+    } 
+    
+    private void effacerInventaire() {
+        liste.clear();
+    }
+    
 }
+
+   
+   
+    
+
