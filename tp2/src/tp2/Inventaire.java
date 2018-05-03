@@ -71,7 +71,7 @@ public class Inventaire implements Serializable{
     }
     
     public void ajouterEntretiens(LocalDate date, String details){
-        entretiens.put(date, autre);
+        entretiens.put(date, details);
     }
     
     public void supprimerEntretiens(LocalDate key){

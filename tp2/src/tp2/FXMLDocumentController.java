@@ -34,6 +34,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
@@ -54,8 +55,6 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private CheckMenuItem mniEdit;
-    @FXML
-    private Tab tbpTableauBord;
     @FXML
     private Label txfJeux;
     @FXML
@@ -135,6 +134,10 @@ public class FXMLDocumentController implements Initializable {
     public String nomFic = "";
     
     public boolean enregistrer = false;
+    @FXML
+    private TabPane tbpPane;
+    @FXML
+    private Label lblChamps2;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -278,7 +281,7 @@ public class FXMLDocumentController implements Initializable {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("À propos");
         alert.setHeaderText("Programme crée par :");
-        alert.setContentText("Jesse Galarneau & Marc Antoine Griffiths Lorange" + "\n" + "2018-05-18");
+        alert.setContentText("Jesse Galarneau & Marc Antoine Griffiths Lorange" + "\n" + "2018-05-21");
         alert.showAndWait();
     }
     
@@ -325,21 +328,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void btnSupprimerSelection(ActionEvent event) {
-        if (!tbvClasse.getSelectionModel().isEmpty()) {
-            Alert alertConf = new Alert(AlertType.CONFIRMATION);
-            alertConf.setHeaderText("Supprimer?");
-            alertConf.setTitle("Supprimer la sélection?");
-            alertConf.setContentText("La sélection supprimer n'est pas récupérable.");
-            alertConf.getButtonTypes().setAll(ButtonType.YES);
-            alertConf.getButtonTypes().add(ButtonType.CANCEL);
-            Optional<ButtonType> result = alertConf.showAndWait();
-            if (result.get() == ButtonType.YES) {
-                liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
-                alertConf.close();
-            }else{
-                alertConf.close();
-            }
-        }
+        supprimerObjet();
     }
 
 
@@ -349,6 +338,17 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void btnAjouter2(ActionEvent event) {
+        if (!tbvInventaireNom.getSelectionModel().isEmpty() && dtpDate2.getValue() != null && !txaAutre.getText().isEmpty()) {
+            int index = tbvInventaireNom.getSelectionModel().getSelectedIndex();
+            liste.get(index).ajouterEntretiens(dtpDate2.getValue(), txaAutre.getText());
+            dtpDate2.setValue(null);
+            txaAutre.clear();
+            lsvAutre.getItems().clear();
+            miseAjoursLsv();    
+            lblChamps2.setVisible(false);
+        }else{
+            lblChamps2.setVisible(true);
+        }
     }
 
     @FXML
@@ -432,15 +432,67 @@ public class FXMLDocumentController implements Initializable {
         txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
         txfCategorie2.setText(liste.get(index).getAutre());
         lsvAutre.getItems().clear();
-        for (Map.Entry<LocalDate, String> map : liste.get(index).getEntretiens().entrySet()) {
-            LocalDate key = map.getKey();
-            String value = map.getValue();
-            lsvAutre.getItems().add(key + "   " + value);
-        }      
+        miseAjoursLsv();
+             
     } 
     
     private void effacerInventaire() {
         liste.clear();
+    }
+    
+    public void miseAjoursLsv(){
+        int index =tbvInventaireNom.getSelectionModel().getSelectedIndex();
+        for (Map.Entry<LocalDate, String> map : liste.get(index).getEntretiens().entrySet()) {
+            LocalDate key = map.getKey();
+            String value = map.getValue();
+            lsvAutre.getItems().add(key + "   " + value);
+        }  
+    }
+
+    @FXML
+    private void tbvDoubleClick(MouseEvent event) {
+        if (event.getClickCount() == 2) {
+            if (!tbvClasse.getSelectionModel().isEmpty()) {
+                tbpPane.getSelectionModel().select(2);
+                int index =tbvClasse.getSelectionModel().getSelectedIndex();
+                txfCategorie2.setText(liste.get(index).getCategorie());
+                txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
+                txfCategorie2.setText(liste.get(index).getAutre());
+                lsvAutre.getItems().clear();
+                tbvInventaireNom.getSelectionModel().select(index);
+                for (Map.Entry<LocalDate, String> map : liste.get(index).getEntretiens().entrySet()) {
+                    LocalDate key = map.getKey();
+                    String value = map.getValue();
+                    lsvAutre.getItems().add(key + "   " + value);
+                }  
+            }
+        }
+    }
+
+    @FXML
+    private void ctmSupprimer(ActionEvent event) {
+        supprimerObjet();
+    }
+    
+    private void supprimerObjet(){
+        if (!tbvClasse.getSelectionModel().isEmpty()) {
+            Alert alertConf = new Alert(AlertType.CONFIRMATION);
+            alertConf.setHeaderText("Supprimer?");
+            alertConf.setTitle("Supprimer la sélection?");
+            alertConf.setContentText("La sélection supprimer n'est pas récupérable.");
+            alertConf.getButtonTypes().setAll(ButtonType.YES);
+            alertConf.getButtonTypes().add(ButtonType.CANCEL);
+            Optional<ButtonType> result = alertConf.showAndWait();
+            if (result.get() == ButtonType.YES) {
+                liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
+                alertConf.close();
+            }else{
+                alertConf.close();
+            }
+            tbvClasse.setItems(liste);
+            tbvInventaireNom.setItems(liste);
+        }
+        compteurs();
     }
     
 }
