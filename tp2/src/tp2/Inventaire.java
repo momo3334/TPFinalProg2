@@ -77,4 +77,12 @@ public class Inventaire implements Serializable{
     public void supprimerEntretiens(LocalDate key){
         entretiens.remove(key);
     }
+
+    public TreeMap<LocalDate, String> getEntretiens() {
+        return entretiens;
+    }
+
+    public void setEntretiens(TreeMap<LocalDate, String> entretiens) {
+        this.entretiens = entretiens;
+    }
 }

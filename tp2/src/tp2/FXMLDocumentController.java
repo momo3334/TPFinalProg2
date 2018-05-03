@@ -15,7 +15,10 @@ import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -23,6 +26,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -111,7 +115,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private TextField txfDate2;
     @FXML
-    private ListView<Inventaire> lsvAutre;
+    private ListView<String> lsvAutre;
     @FXML
     private DatePicker dtpDate2;
     @FXML
@@ -161,7 +165,7 @@ public class FXMLDocumentController implements Initializable {
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
         fc.setTitle("Choisir ou sauvegarder le fichier");
         fc.setInitialDirectory(new File("fichiers"));
-        File fichier = fc.showSaveDialog(null);
+        File fichier = fc.showOpenDialog(null);
         if (fichier != null) {
             FileInputStream fis = new FileInputStream(fichier);
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -213,7 +217,7 @@ public class FXMLDocumentController implements Initializable {
     private void mniEnregistrerSousAction(ActionEvent event) throws FileNotFoundException, IOException {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
-        fc.setTitle("Choisir ou sauvegarder le fichier");
+        fc.setTitle("Choisir où sauvegarder le fichier");
         fc.setInitialDirectory(new File("fichiers"));
         File fichier = fc.showSaveDialog(null);
         if (fichier != null) {
@@ -282,10 +286,20 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void btnSupprimerSelection(ActionEvent event) {
         if (!tbvClasse.getSelectionModel().isEmpty()) {
-            
-            liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
+            Alert alertConf = new Alert(AlertType.CONFIRMATION);
+            alertConf.setHeaderText("Supprimer?");
+            alertConf.setTitle("Supprimer la sélection?");
+            alertConf.setContentText("La sélection supprimer n'est pas récupérable.");
+            alertConf.getButtonTypes().setAll(ButtonType.YES);
+            alertConf.getButtonTypes().add(ButtonType.CANCEL);
+            Optional<ButtonType> result = alertConf.showAndWait();
+            if (result.get() == ButtonType.YES) {
+                liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
+                alertConf.close();
+            }else{
+                alertConf.close();
+            }
         }
-
     }
 
 
@@ -295,8 +309,9 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void btnAjouter2(ActionEvent event) {
+        
     }
-
+//------------------------------Modification------------------------------------
     @FXML
     private void tbvNomEdit(CellEditEvent event) {
     }
@@ -373,7 +388,15 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void tbvNomPressed(MouseEvent event) {
-        tbvInventaireNom.getSelectionModel().getSelectedItem();
-    }
-    
+        int index =tbvInventaireNom.getSelectionModel().getSelectedIndex();
+        txfCategorie2.setText(liste.get(index).getCategorie());
+        txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
+        txfCategorie2.setText(liste.get(index).getAutre());
+        lsvAutre.getItems().clear();
+        for (Map.Entry<LocalDate, String> map : liste.get(index).getEntretiens().entrySet()) {
+            LocalDate key = map.getKey();
+            String value = map.getValue();
+            lsvAutre.getItems().add(key + "   " + value);
+        }      
+    }    
 }
