@@ -185,61 +185,61 @@ public class FXMLDocumentController implements Initializable {
             ois.close();
             enregistrer = true;
         }
-
         compteurs();
     }
+    
     /**
      * fermer le fichier ouvert avec  demande de sauvegarde si non-sauvegarde
      */
     @FXML
     private void mniFermerAction(ActionEvent event) throws IOException {
-        Alert  alerte = new Alert(AlertType.CONFIRMATION);
-        alerte.setTitle("Attention");
-        alerte.setHeaderText("Confirmation de fermeture du programme");
-        alerte.setContentText("Veuillez enregistrer votre inventaire avant de fermer.");
-        Optional<ButtonType> result = alerte.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == false) {
-            mniEnregistrerSousAction(event);
-            enregistrer = true;
+        if (enregistrer) {
             liste.clear();
             compteurs();
             path = "";
-        }else if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == true){
-            mniEnregistrerAction(event);
-            enregistrer = true;
-            liste.clear();
-            compteurs();
-            path = "";
+        } else {
+            Alert alerte = new Alert(AlertType.CONFIRMATION);
+            alerte.setTitle("Attention");
+            alerte.setHeaderText("Confirmation de fermeture du programme");
+            alerte.setContentText("Veuillez enregistrer votre inventaire avant de fermer.");
+            alerte.getButtonTypes().setAll(ButtonType.YES);
+            alerte.getButtonTypes().add(ButtonType.CANCEL);
+            alerte.getButtonTypes().add(ButtonType.NO);
+            Optional<ButtonType> result = alerte.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.YES) {
+                mniEnregistrerAction(event);
+                enregistrer = false;
+                liste.clear();
+                compteurs();
+                path = "";
+
+            } else if (result.isPresent() && result.get() == ButtonType.NO) {
+                enregistrer = false;
+                liste.clear();
+                compteurs();
+                path = "";
+            } else {
+                alerte.close();
+            }
         }
+
     }
     
     /**
      * Enregistrer dans le fichier actuel ou
-     * Enregistrer dans une destination choisi par fileChooser
+     * Appeler enregistrerSous pour choisir par fileChooser
      */
     @FXML
     private void mniEnregistrerAction(ActionEvent event) throws FileNotFoundException, IOException {
         if (path.equals("")) {
-            FileChooser fc = new FileChooser();
-            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat"));
-            fc.setTitle("Choisir ou sauvegarder le fichier");
-            fc.setInitialDirectory(new File("fichiers"));
-            File fichier = fc.showSaveDialog(null);
-            if (fichier != null) {
-                ObjectOutputStream sortie = new ObjectOutputStream(new FileOutputStream(fichier));
-                sortie.writeObject(new ArrayList<>(liste));
-                sortie.close();
-                path = fichier.getAbsolutePath();
-                nomFic = fichier.getName();
-            }
+            mniEnregistrerSousAction(event);          
         }else{
             FileOutputStream fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(new ArrayList<>(liste));
             oos.close();
-        }
-        enregistrer = true;
-        
+            enregistrer = true;
+        } 
     }
     
     /**
@@ -259,27 +259,32 @@ public class FXMLDocumentController implements Initializable {
             sortie.close(); 
             path = fichier.getAbsolutePath();
             nomFic = fichier.getName();
+            enregistrer = true;
         }
-        enregistrer = true;
+        
     }
 
     @FXML
     private void mniQuitterAction(ActionEvent event) throws IOException {
-        Alert  alerte = new Alert(AlertType.CONFIRMATION);
-        alerte.setTitle("Attention");
-        alerte.setHeaderText("Confirmation de fermeture du programme");
-        alerte.setContentText("Veuillez enregistrer votre inventaire avant de quitter.");
-        Optional<ButtonType> result = alerte.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == false) {
-            mniEnregistrerSousAction(event);
-            enregistrer = true;
+        if (enregistrer) {
             Platform.exit();
-        }else if (result.isPresent() && result.get() == ButtonType.OK && enregistrer == true){
-            mniEnregistrerAction(event);
-            enregistrer = true;
-            Platform.exit();
-        }else if (result.isPresent() && result.get() == ButtonType.CANCEL){
-            alerte.close();
+        } else {
+            Alert alerte = new Alert(AlertType.CONFIRMATION);
+            alerte.setTitle("Attention");
+            alerte.setHeaderText("Confirmation de fermeture du programme");
+            alerte.setContentText("Veuillez enregistrer votre inventaire avant de quitter.");
+            alerte.getButtonTypes().setAll(ButtonType.YES);
+            alerte.getButtonTypes().add(ButtonType.CANCEL);
+            alerte.getButtonTypes().add(ButtonType.NO);
+            Optional<ButtonType> result = alerte.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                mniEnregistrerAction(event);
+                Platform.exit();
+            } else if (result.isPresent() && result.get() == ButtonType.NO) {
+                Platform.exit();
+            } else {
+                alerte.close();
+            }
         }
     }
     
@@ -331,6 +336,7 @@ public class FXMLDocumentController implements Initializable {
             txfAutre.clear();
             tbvClasse.getSelectionModel().select(-1);
             lblChamp.setVisible(false);
+            enregistrer = false;
         }else
             lblChamp.setVisible(true);
         
@@ -363,6 +369,7 @@ public class FXMLDocumentController implements Initializable {
             lsvAutre.getItems().clear();
             miseAjoursLsv(index);    
             lblChamps2.setVisible(false);
+            enregistrer = false;
         }else{
             lblChamps2.setVisible(true);
         }
@@ -516,6 +523,7 @@ public class FXMLDocumentController implements Initializable {
             if (result.get() == ButtonType.YES) {
                 liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
                 alertConf.close();
+                enregistrer = false;
             }else{
                 alertConf.close();
             }
@@ -525,7 +533,6 @@ public class FXMLDocumentController implements Initializable {
         compteurs();
     }
 }
-
    
    
     
