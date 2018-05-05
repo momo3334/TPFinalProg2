@@ -159,8 +159,12 @@ public class FXMLDocumentController implements Initializable {
 
     //----------------------------menus-----------------------------------------
     
+    /**
+     * Creer un nouvel inventaire avec demande de sauvegarde
+     */
     @FXML
-    private void mniNouveauAction(ActionEvent event) {
+    private void mniNouveauAction(ActionEvent event) throws IOException, IOException {
+        mniFermerAction(event);
     }
 
     /**
@@ -264,6 +268,9 @@ public class FXMLDocumentController implements Initializable {
         
     }
 
+    /**
+     * Fermer le programme avec demande de sauvegarde
+     */
     @FXML
     private void mniQuitterAction(ActionEvent event) throws IOException {
         if (enregistrer) {
