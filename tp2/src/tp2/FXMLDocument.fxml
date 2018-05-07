@@ -65,7 +65,7 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Outils">
                <items>
-                  <CheckMenuItem fx:id="mniEdit" mnemonicParsing="false" text="Liste inventaire éditable">
+                  <CheckMenuItem fx:id="mniEdit" mnemonicParsing="false" onAction="#mniEditAction" text="Liste inventaire éditable">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
