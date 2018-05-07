@@ -138,9 +138,9 @@ public class FXMLDocumentController implements Initializable {
     
     public String nomFic = "";
     
-    public boolean enregistrer = false;
+    public boolean enregistrer = true;
     
-    public boolean modifiable = false;
+    public boolean modifiable;
     
     //-----------------------------code-----------------------------------------
     
@@ -156,7 +156,7 @@ public class FXMLDocumentController implements Initializable {
         
         tbvNom.setCellFactory(TextFieldTableCell.forTableColumn());
         tbvCategorie.setCellFactory(ComboBoxTableCell.forTableColumn("Jeux", "Processeur", "Automobile", "Skateboard", "Divers"));
-        tbvPrix.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
+        tbvPrix.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterWEH()));
         tbvDateAchat.setCellFactory(TextFieldTableCell.forTableColumn(new LocalDateStringConverter()));
         tbvAutre.setCellFactory(TextFieldTableCell.forTableColumn());
     }    
@@ -288,7 +288,7 @@ public class FXMLDocumentController implements Initializable {
             alerte.getButtonTypes().add(ButtonType.CANCEL);
             alerte.getButtonTypes().add(ButtonType.NO);
             Optional<ButtonType> result = alerte.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (result.isPresent() && result.get() == ButtonType.YES) {
                 mniEnregistrerAction(event);
                 Platform.exit();
             } else if (result.isPresent() && result.get() == ButtonType.NO) {
@@ -301,12 +301,12 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private void mniEditAction(ActionEvent event) {
-        if (modifiable) {
-            tbvClasse.setEditable(false);
-            modifiable = false;
-        }else
+        if (mniEdit.isSelected()) {
             tbvClasse.setEditable(true);
             modifiable = true;
+        }else
+            tbvClasse.setEditable(false);
+            modifiable = false;
     }
     
     /**
@@ -377,7 +377,7 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void btnSupprimer2Action(ActionEvent event) {
-        if (!tbvInventaireNom.getSelectionModel().isEmpty() && !lsvAutre.getSelectionModel().getSelectedItem().isEmpty()) {
+        if (!tbvInventaireNom.getSelectionModel().isEmpty() && lsvAutre.getSelectionModel().getSelectedIndex() != -1) {
             Alert alertConf = new Alert(AlertType.CONFIRMATION);
             alertConf.setHeaderText("Supprimer?");
             alertConf.setTitle("Supprimer l'entretien?");
@@ -425,6 +425,7 @@ public class FXMLDocumentController implements Initializable {
     private void tbvNomEdit(CellEditEvent editCell) {
         Inventaire iven = tbvClasse.getSelectionModel().getSelectedItem();
         iven.setNom(editCell.getNewValue().toString());
+        enregistrer = false;
     }
 
     /**
@@ -433,7 +434,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void tbvCategorieEdit(CellEditEvent editCell) {
         Inventaire iven = tbvClasse.getSelectionModel().getSelectedItem();
-        iven.setNom(editCell.getNewValue().toString());       
+        iven.setCategorie(editCell.getNewValue().toString());
+        enregistrer = false;
     }
 
     /**
@@ -442,7 +444,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void tbvPrixEdit(CellEditEvent editCell) {
         Inventaire iven = tbvClasse.getSelectionModel().getSelectedItem();
-        iven.setNom(editCell.getNewValue().toString());      
+        iven.setPrix(Double.parseDouble(editCell.getNewValue().toString()));
+        enregistrer = false;
     }
 
     /**
@@ -450,8 +453,10 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void tbvDateAchatEdit(CellEditEvent editCell) {
+        System.out.println("aloo");
         Inventaire iven = tbvClasse.getSelectionModel().getSelectedItem();
-        iven.setNom(editCell.getNewValue().toString());   
+        iven.setDateAchat(LocalDate.parse(editCell.getNewValue().toString()));
+        enregistrer = false;
     }
 
     /**
@@ -460,7 +465,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void tbvAutreEdit(CellEditEvent editCell) {
         Inventaire iven = tbvClasse.getSelectionModel().getSelectedItem();
-        iven.setNom(editCell.getNewValue().toString());
+        iven.setAutre(editCell.getNewValue().toString());
+        enregistrer = false;
     }
    
     //----------------------------autres----------------------------------------
@@ -470,18 +476,17 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void tbvDoubleClick(MouseEvent event) {
-        if (modifiable == false) {
-            if (event.getClickCount() == 2) {
+        if (mniEdit.isSelected() == false) {
+            if (event.getClickCount() >= 2) {
                 if (!tbvClasse.getSelectionModel().isEmpty()) {
                     tbpPane.getSelectionModel().select(2);
                     int index = tbvClasse.getSelectionModel().getSelectedIndex();
                     txfCategorie2.setText(liste.get(index).getCategorie());
                     txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
-                    txfCategorie2.setText(liste.get(index).getAutre());
+                    txfAutre2.setText(liste.get(index).getAutre());
                     lsvAutre.getItems().clear();
                     tbvInventaireNom.getSelectionModel().select(index);
                     miseAjoursLsv(index);
-                    
                 }
             }
         }  
@@ -501,12 +506,14 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void tbvNomPressed(MouseEvent event) {
+        if (tbvInventaireNom.getSelectionModel().getSelectedIndex() != -1) {
         int index =tbvInventaireNom.getSelectionModel().getSelectedIndex();
         txfCategorie2.setText(liste.get(index).getCategorie());
         txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
-        txfCategorie2.setText(liste.get(index).getAutre());
+        txfAutre2.setText(liste.get(index).getAutre());
         lsvAutre.getItems().clear();
-        miseAjoursLsv(index);            
+        miseAjoursLsv(index);   
+        }
     } 
     
     //---------------------Methodes reutiliser----------------------------------
@@ -530,17 +537,17 @@ public class FXMLDocumentController implements Initializable {
         int compteurDivers = 0;
         
         for(Inventaire inv : liste){
-            String cat = inv.getCategorie();
-            if (cat.equals("Jeux")) {
+            String objet = inv.getCategorie();
+            if (objet.equals("Jeux")) {
                 totalJeuxPrix += inv.getPrix();
                 compteurJeux++;
-            }else if(cat.equals("Processeur")){
+            }else if(objet.equals("Processeur")){
                 totalProcesseurPrix += inv.getPrix();
                 compteurProcesseur++;
-            }else if(cat.equals("Automobile")){
+            }else if(objet.equals("Automobile")){
                 totalAutomobilePrix += inv.getPrix();
                 compteurAutomobile++;
-            }else if(cat.equals("Skateboard")){
+            }else if(objet.equals("Skateboard")){
                 totalSkateboardPrix += inv.getPrix();
                 compteurSkateboard++;
             }else{
