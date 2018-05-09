@@ -188,7 +188,14 @@
                         <TextField fx:id="txfCategorie2" disable="true" editable="false" layoutX="234.0" layoutY="14.0" prefHeight="25.0" prefWidth="134.0" promptText="Catégorie" />
                         <TextField fx:id="txfAutre2" disable="true" editable="false" layoutX="494.0" layoutY="14.0" prefHeight="25.0" prefWidth="206.0" promptText="Autre" />
                         <TextField fx:id="txfDate2" disable="true" editable="false" layoutX="372.0" layoutY="14.0" prefHeight="25.0" prefWidth="118.0" promptText="Date" />
-                        <ListView fx:id="lsvAutre" layoutX="234.0" layoutY="47.0" prefHeight="198.0" prefWidth="466.0" />
+                        <ListView fx:id="lsvAutre" layoutX="234.0" layoutY="47.0" prefHeight="198.0" prefWidth="466.0">
+                           <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                  <MenuItem mnemonicParsing="false" onAction="#ctmSupprimer2" text="Supprimer" />
+                                </items>
+                              </ContextMenu>
+                           </contextMenu></ListView>
                         <Button layoutX="623.0" layoutY="253.0" mnemonicParsing="false" onAction="#btnSupprimer2Action" prefHeight="25.0" prefWidth="77.0" text="Supprimer" />
                         <Separator layoutX="235.0" layoutY="277.0" prefHeight="11.0" prefWidth="464.0" />
                         <DatePicker fx:id="dtpDate2" layoutX="234.0" layoutY="296.0" promptText="Date de l'entretien" />

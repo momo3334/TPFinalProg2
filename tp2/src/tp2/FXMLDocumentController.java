@@ -1,7 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * L'application permet de gérer un inventaire selon des catégories de votre choix.
+ * Pour chaque élément de l'inventaire
+ * il est possible de faire un suivi d'entretiens. Un tableau de bord donne un
+ * aperçue de l'inventaire par catégorie.
+ * Plusieurs inventaires peuvent être créés.
+ * Auteurs : Jesse Galarneau et Marc-Antoine Griffiths
+ * Date : 21 mai 2018
  */
 package tp2;
 
@@ -48,13 +52,7 @@ import javafx.stage.FileChooser;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.LocalDateStringConverter;
 
-/**
- * FXML Controller class
- *
- * @author usager
- */
 public class FXMLDocumentController implements Initializable {
-
     @FXML
     private CheckMenuItem mniEdit;
     @FXML
@@ -129,40 +127,33 @@ public class FXMLDocumentController implements Initializable {
     private TabPane tbpPane;
     @FXML
     private Label lblChamps2;
-    
-    //-------------------------Variables globales-------------------------------
-    
-    public ObservableList<Inventaire> liste = FXCollections.observableArrayList();
 
-    public String path = "";
-    
-    public String nomFic = "";
-    
-    public boolean enregistrer = true;
-    
-    public boolean modifiable;
-    
+    //-------------------------Variables globales-------------------------------
+    public ObservableList<Inventaire> liste = FXCollections.observableArrayList(); //contenir les objets de l'inventaire
+
+    public String path = ""; //contenir le chemin du fichier en cours
+
+    public boolean enregistrer = true; //determiner si les derniers changements son sauvegarder
+
     //-----------------------------code-----------------------------------------
-    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        cmbCategorie.getItems().addAll("Jeux", "Processeur","Automobile","Skateboard", "Divers");
+        cmbCategorie.getItems().addAll("Jeux", "Processeur", "Automobile", "Skateboard", "Divers");
         tbvNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
         tbvCategorie.setCellValueFactory(new PropertyValueFactory<>("categorie"));
         tbvPrix.setCellValueFactory(new PropertyValueFactory<>("prix"));
         tbvDateAchat.setCellValueFactory(new PropertyValueFactory<>("dateAchat"));
         tbvAutre.setCellValueFactory(new PropertyValueFactory<>("autre"));
         tbvNom2.setCellValueFactory(new PropertyValueFactory<>("nom"));
-        
+
         tbvNom.setCellFactory(TextFieldTableCell.forTableColumn());
         tbvCategorie.setCellFactory(ComboBoxTableCell.forTableColumn("Jeux", "Processeur", "Automobile", "Skateboard", "Divers"));
         tbvPrix.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverterWEH()));
         tbvDateAchat.setCellFactory(TextFieldTableCell.forTableColumn(new LocalDateStringConverter()));
         tbvAutre.setCellFactory(TextFieldTableCell.forTableColumn());
-    }    
+    }
 
     //----------------------------menus-----------------------------------------
-    
     /**
      * Creer un nouvel inventaire avec demande de sauvegarde
      */
@@ -173,31 +164,20 @@ public class FXMLDocumentController implements Initializable {
 
     /**
      * Ouvrir un fichier avec un fileChooser
-     * 
+     *
      */
     @FXML
     private void mniOuvrirAction(ActionEvent event) throws FileNotFoundException, IOException, ClassNotFoundException {
-        FileChooser fc = new FileChooser();
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
-        fc.setTitle("Choisir ou sauvegarder le fichier");
-        fc.setInitialDirectory(new File("fichiers"));
-        File fichier = fc.showOpenDialog(null);
-        if (fichier != null) {
-            path = fichier.getAbsolutePath();
-            FileInputStream fis = new FileInputStream(fichier);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            ArrayList<Inventaire> list = (ArrayList<Inventaire>) ois.readObject();
-            liste = FXCollections.observableList(list);
-            tbvClasse.setItems(liste);
-            tbvInventaireNom.setItems(liste);
-            ois.close();
-            enregistrer = true;
+        if (enregistrer) {
+            ouvrir();
+        } else {
+            confirmation(event);
+            ouvrir();
         }
-        compteurs();
     }
-    
+
     /**
-     * fermer le fichier ouvert avec  demande de sauvegarde si non-sauvegarde
+     * fermer le fichier ouvert avec demande de sauvegarde si non-sauvegarde
      */
     @FXML
     private void mniFermerAction(ActionEvent event) throws IOException {
@@ -205,71 +185,49 @@ public class FXMLDocumentController implements Initializable {
             liste.clear();
             compteurs();
             path = "";
+            tbpPane.getSelectionModel().select(0);
         } else {
-            Alert alerte = new Alert(AlertType.CONFIRMATION);
-            alerte.setTitle("Attention");
-            alerte.setHeaderText("Confirmation de fermeture du programme");
-            alerte.setContentText("Veuillez enregistrer votre inventaire avant de fermer.");
-            alerte.getButtonTypes().setAll(ButtonType.YES);
-            alerte.getButtonTypes().add(ButtonType.CANCEL);
-            alerte.getButtonTypes().add(ButtonType.NO);
-            Optional<ButtonType> result = alerte.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.YES) {
-                mniEnregistrerAction(event);
-                enregistrer = false;
-                liste.clear();
-                compteurs();
-                path = "";
-
-            } else if (result.isPresent() && result.get() == ButtonType.NO) {
-                enregistrer = false;
-                liste.clear();
-                compteurs();
-                path = "";
-            } else {
-                alerte.close();
-            }
+            confirmation(event);
         }
 
     }
-    
+
     /**
-     * Enregistrer dans le fichier actuel ou
-     * Appeler enregistrerSous pour choisir par fileChooser
+     * Enregistrer dans le fichier actuel ou Appeler enregistrerSous pour
+     * choisir par fileChooser
      */
     @FXML
     private void mniEnregistrerAction(ActionEvent event) throws FileNotFoundException, IOException {
         if (path.equals("")) {
-            mniEnregistrerSousAction(event);          
-        }else{
+            mniEnregistrerSousAction(event);
+        } else {
             FileOutputStream fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(new ArrayList<>(liste));
             oos.close();
             enregistrer = true;
-        } 
+        }
     }
-    
+
     /**
      * Enregistrer dans une destination choisi par fileChooser
-     * 
+     *
      */
     @FXML
     private void mniEnregistrerSousAction(ActionEvent event) throws FileNotFoundException, IOException {
         FileChooser fc = new FileChooser();
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat" ));
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat"));
         fc.setTitle("Choisir ou sauvegarder le fichier");
         fc.setInitialDirectory(new File("fichiers"));
         File fichier = fc.showSaveDialog(null);
         if (fichier != null) {
-            ObjectOutputStream sortie = new ObjectOutputStream(new FileOutputStream(fichier)); 
+            ObjectOutputStream sortie = new ObjectOutputStream(new FileOutputStream(fichier));
             sortie.writeObject(new ArrayList<>(liste));
-            sortie.close(); 
+            sortie.close();
             path = fichier.getAbsolutePath();
-            nomFic = fichier.getName();
             enregistrer = true;
         }
-        
+
     }
 
     /**
@@ -298,20 +256,19 @@ public class FXMLDocumentController implements Initializable {
             }
         }
     }
-    
+
     @FXML
     private void mniEditAction(ActionEvent event) {
         if (mniEdit.isSelected()) {
             tbvClasse.setEditable(true);
-            modifiable = true;
-        }else
+        } else {
             tbvClasse.setEditable(false);
-            modifiable = false;
+        }
     }
-    
+
     /**
      * Afficher les details des developpeurs
-     *  
+     *
      */
     @FXML
     private void mniProposAction(ActionEvent event) {
@@ -321,12 +278,11 @@ public class FXMLDocumentController implements Initializable {
         alert.setContentText("Jesse Galarneau & Marc Antoine Griffiths Lorange" + "\n" + "2018-05-21");
         alert.showAndWait();
     }
-    
 
 //-------------------------------------boutons----------------------------------
     /**
      * Ajouter un objet dans le tbv et observable list
-     * 
+     *
      */
     @FXML
     private void btnAjouter(ActionEvent event) {
@@ -344,8 +300,8 @@ public class FXMLDocumentController implements Initializable {
         int compteurDivers = 0;
 
         LocalDate date = dtpDate.getValue();
-        if (!txfNom.getText().isEmpty() 
-                && !cmbCategorie.getSelectionModel().getSelectedItem().isEmpty() 
+        if (!txfNom.getText().isEmpty()
+                && !cmbCategorie.getSelectionModel().getSelectedItem().isEmpty()
                 && !txfValeur.getText().isEmpty() && date != null) {
             liste.add(new Inventaire(txfNom.getText(), cmbCategorie.getSelectionModel().getSelectedItem(), Double.parseDouble(txfValeur.getText()), date, txfAutre.getText()));
             tbvClasse.setItems(liste);
@@ -358,9 +314,10 @@ public class FXMLDocumentController implements Initializable {
             tbvClasse.getSelectionModel().select(-1);
             lblChamp.setVisible(false);
             enregistrer = false;
-        }else
+        } else {
             lblChamp.setVisible(true);
-        
+        }
+
         compteurs();
     }
 
@@ -377,28 +334,12 @@ public class FXMLDocumentController implements Initializable {
      */
     @FXML
     private void btnSupprimer2Action(ActionEvent event) {
-        if (!tbvInventaireNom.getSelectionModel().isEmpty() && lsvAutre.getSelectionModel().getSelectedIndex() != -1) {
-            Alert alertConf = new Alert(AlertType.CONFIRMATION);
-            alertConf.setHeaderText("Supprimer?");
-            alertConf.setTitle("Supprimer l'entretien?");
-            alertConf.setContentText("La l'entretien supprimer n'est pas récupérable.");
-            alertConf.getButtonTypes().setAll(ButtonType.YES);
-            alertConf.getButtonTypes().add(ButtonType.CANCEL);
-            Optional<ButtonType> result = alertConf.showAndWait();
-            if (result.get() == ButtonType.YES) {
-                int index = tbvInventaireNom.getSelectionModel().getSelectedIndex();
-                liste.get(index).supprimerEntretiens(LocalDate.parse(lsvAutre.getSelectionModel().getSelectedItem().substring(0, 10)));
-                miseAjoursLsv(index);
-                enregistrer = false;
-            }else{
-                alertConf.close();
-            }
-        }
+        supprimerEntretien();
     }
 
     /**
      * Ajouter un entretiens a l'objet selectionner
-     * 
+     *
      */
     @FXML
     private void btnAjouter2(ActionEvent event) {
@@ -408,18 +349,17 @@ public class FXMLDocumentController implements Initializable {
             dtpDate2.setValue(null);
             txaAutre.clear();
             lsvAutre.getItems().clear();
-            miseAjoursLsv(index);    
+            miseAjoursLsv(index);
             lblChamps2.setVisible(false);
             enregistrer = false;
-        }else{
+        } else {
             lblChamps2.setVisible(true);
         }
     }
 
     //---------------------------Modifications----------------------------------
-    
     /**
-     * Modifier le nom 
+     * Modifier le nom
      */
     @FXML
     private void tbvNomEdit(CellEditEvent editCell) {
@@ -449,7 +389,7 @@ public class FXMLDocumentController implements Initializable {
     }
 
     /**
-     * Modifier la date 
+     * Modifier la date
      */
     @FXML
     private void tbvDateAchatEdit(CellEditEvent editCell) {
@@ -468,11 +408,29 @@ public class FXMLDocumentController implements Initializable {
         iven.setAutre(editCell.getNewValue().toString());
         enregistrer = false;
     }
-   
-    //----------------------------autres----------------------------------------
+
+    //--------------------------contextMenu-------------------------------------
     /**
-     * Afficher les entretiens lorsqu'un objet se fait double clicker 
-     * @param event 
+     * Appeler la methode supprimerObjet
+     */
+    @FXML
+    private void ctmSupprimer(ActionEvent event) {
+        supprimerObjet();
+    }
+    
+    /**
+     *  Appeler la methode supprimerEntretien
+     */
+    @FXML
+    private void ctmSupprimer2(ActionEvent event) {
+        supprimerEntretien();
+    }
+    
+    //-------------------------MouseEvent---------------------------------------
+    /**
+     * Afficher les entretiens lorsqu'un objet se fait double clicker
+     *
+     * @param event
      */
     @FXML
     private void tbvDoubleClick(MouseEvent event) {
@@ -489,40 +447,30 @@ public class FXMLDocumentController implements Initializable {
                     miseAjoursLsv(index);
                 }
             }
-        }  
+        }
     }
 
     /**
-     * Appeler la methode supprimer
-     */
-    @FXML
-    private void ctmSupprimer(ActionEvent event) {
-        supprimerObjet();
-    }
-    
-    /**
      * Afficher les entretiens de l'objet selectionner
-     * 
+     *
      */
     @FXML
     private void tbvNomPressed(MouseEvent event) {
         if (tbvInventaireNom.getSelectionModel().getSelectedIndex() != -1) {
-        int index =tbvInventaireNom.getSelectionModel().getSelectedIndex();
-        txfCategorie2.setText(liste.get(index).getCategorie());
-        txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
-        txfAutre2.setText(liste.get(index).getAutre());
-        lsvAutre.getItems().clear();
-        miseAjoursLsv(index);   
+            int index = tbvInventaireNom.getSelectionModel().getSelectedIndex();
+            txfCategorie2.setText(liste.get(index).getCategorie());
+            txfDate2.setText(String.valueOf(liste.get(index).getDateAchat()));
+            txfAutre2.setText(liste.get(index).getAutre());
+            miseAjoursLsv(index);
         }
-    } 
-    
+    }
+
     //---------------------Methodes reutiliser----------------------------------
-    
     /**
-     * compter inventaire par categorie
-     * remplir les labels avec les compteurs de categorie
+     * compter inventaire par categorie remplir les labels avec les compteurs de
+     * categorie
      */
-    private void compteurs(){
+    private void compteurs() {
         int total;
         double totalPrix;
         double totalJeuxPrix = 0;
@@ -535,27 +483,27 @@ public class FXMLDocumentController implements Initializable {
         int compteurAutomobile = 0;
         int compteurSkateboard = 0;
         int compteurDivers = 0;
-        
-        for(Inventaire inv : liste){
+
+        for (Inventaire inv : liste) {
             String objet = inv.getCategorie();
             if (objet.equals("Jeux")) {
                 totalJeuxPrix += inv.getPrix();
                 compteurJeux++;
-            }else if(objet.equals("Processeur")){
+            } else if (objet.equals("Processeur")) {
                 totalProcesseurPrix += inv.getPrix();
                 compteurProcesseur++;
-            }else if(objet.equals("Automobile")){
+            } else if (objet.equals("Automobile")) {
                 totalAutomobilePrix += inv.getPrix();
                 compteurAutomobile++;
-            }else if(objet.equals("Skateboard")){
+            } else if (objet.equals("Skateboard")) {
                 totalSkateboardPrix += inv.getPrix();
                 compteurSkateboard++;
-            }else{
+            } else {
                 totalDiversPrix += inv.getPrix();
                 compteurDivers++;
             }
         }
-        
+
         txfJeux.setText(String.valueOf(compteurJeux));
         txfJeuxPrix.setText(String.valueOf(totalJeuxPrix) + "$");
         txfProcesseur.setText(String.valueOf(compteurProcesseur));
@@ -566,7 +514,7 @@ public class FXMLDocumentController implements Initializable {
         txfSkateboardPrix.setText(String.valueOf(totalSkateboardPrix) + "$");
         txfDivers.setText(String.valueOf(compteurDivers));
         txfDiversPrix.setText(String.valueOf(totalDiversPrix) + "$");
-        total = compteurJeux + compteurProcesseur + compteurAutomobile + compteurSkateboard + compteurDivers; 
+        total = compteurJeux + compteurProcesseur + compteurAutomobile + compteurSkateboard + compteurDivers;
         txfTotal.setText(String.valueOf(total));
         totalPrix = totalJeuxPrix + totalProcesseurPrix + totalAutomobilePrix + totalSkateboardPrix + totalDiversPrix;
         txfTotalPrix.setText(String.valueOf(totalPrix) + "$");
@@ -574,20 +522,22 @@ public class FXMLDocumentController implements Initializable {
 
     /**
      * Mettre a jours la listView
-     * @param index 
+     *
+     * @param index
      */
-    public void miseAjoursLsv(int index){
+    public void miseAjoursLsv(int index) {
+        lsvAutre.getItems().clear();
         for (Map.Entry<LocalDate, String> map : liste.get(index).getEntretiens().entrySet()) {
             LocalDate key = map.getKey();
             String value = map.getValue();
             lsvAutre.getItems().add(key + "   " + value);
-        }  
+        }
     }
 
     /**
      * Supprimer un objet de l'inventaire
      */
-    private void supprimerObjet(){
+    private void supprimerObjet() {
         if (!tbvClasse.getSelectionModel().isEmpty()) {
             Alert alertConf = new Alert(AlertType.CONFIRMATION);
             alertConf.setHeaderText("Supprimer?");
@@ -600,7 +550,7 @@ public class FXMLDocumentController implements Initializable {
                 liste.remove(tbvClasse.getSelectionModel().getSelectedIndex());
                 alertConf.close();
                 enregistrer = false;
-            }else{
+            } else {
                 alertConf.close();
             }
             tbvClasse.setItems(liste);
@@ -608,10 +558,85 @@ public class FXMLDocumentController implements Initializable {
         }
         compteurs();
     }
+    
+    /**
+     * Supprimer un entretiens de l'objet selectionner
+     */
+    public void supprimerEntretien(){
+        if (!tbvInventaireNom.getSelectionModel().isEmpty() && lsvAutre.getSelectionModel().getSelectedIndex() != -1) {
+            Alert alertConf = new Alert(AlertType.CONFIRMATION);
+            alertConf.setHeaderText("Supprimer?");
+            alertConf.setTitle("Supprimer l'entretien?");
+            alertConf.setContentText("La l'entretien supprimer n'est pas récupérable.");
+            alertConf.getButtonTypes().setAll(ButtonType.YES);
+            alertConf.getButtonTypes().add(ButtonType.CANCEL);
+            Optional<ButtonType> result = alertConf.showAndWait();
+            if (result.get() == ButtonType.YES) {
+                int index = tbvInventaireNom.getSelectionModel().getSelectedIndex();
+                liste.get(index).supprimerEntretiens(LocalDate.parse(lsvAutre.getSelectionModel().getSelectedItem().substring(0, 10)));
+                miseAjoursLsv(index);
+                
+                enregistrer = false;
+            } else {
+                alertConf.close();
+            }
+        }
+    }
+
+    /**
+     * Afficher une confirmation de sauvergarde
+     */
+    private void confirmation(ActionEvent event) throws IOException, IOException {
+        Alert alerte = new Alert(AlertType.CONFIRMATION);
+        alerte.setTitle("Attention");
+        alerte.setHeaderText("Confirmation de fermeture du programme");
+        alerte.setContentText("Veuillez enregistrer votre inventaire avant de fermer.");
+        alerte.getButtonTypes().setAll(ButtonType.YES);
+        alerte.getButtonTypes().add(ButtonType.CANCEL);
+        alerte.getButtonTypes().add(ButtonType.NO);
+        Optional<ButtonType> result = alerte.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.YES) {
+            mniEnregistrerAction(event);
+            enregistrer = false;
+            liste.clear();
+            compteurs();
+            path = "";
+
+        } else if (result.isPresent() && result.get() == ButtonType.NO) {
+            enregistrer = false;
+            liste.clear();
+            compteurs();
+            path = "";
+        } else {
+            alerte.close();
+        }
+        tbpPane.getSelectionModel().select(0);
+    }
+
+    /**
+     * Afficher le fileChooser pour ouvrir
+     */
+    private void ouvrir() throws FileNotFoundException, FileNotFoundException, IOException, ClassNotFoundException {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("FichierDat(*.dat)", "*.dat"));
+        fc.setTitle("Choisir ou sauvegarder le fichier");
+        fc.setInitialDirectory(new File("fichiers"));
+        File fichier = fc.showOpenDialog(null);
+        if (fichier != null) {
+            liste.clear();
+            path = fichier.getAbsolutePath();
+            FileInputStream fis = new FileInputStream(fichier);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            ArrayList<Inventaire> list = (ArrayList<Inventaire>) ois.readObject();
+            liste = FXCollections.observableList(list);
+            tbvClasse.setItems(liste);
+            tbvInventaireNom.setItems(liste);
+            ois.close();
+            enregistrer = true;
+            tbpPane.getSelectionModel().select(0);
+        }
+        compteurs();
+    }
 
     
 }
-   
-   
-    
-
