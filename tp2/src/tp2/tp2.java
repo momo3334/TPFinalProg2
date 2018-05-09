@@ -1,7 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * L'application permet de gérer un inventaire selon des catégories de votre choix.
+ * Pour chaque élément de l'inventaire
+ * il est possible de faire un suivi d'entretiens. Un tableau de bord donne un
+ * aperçue de l'inventaire par catégorie.
+ * Plusieurs inventaires peuvent être créés.
+ * Auteurs : Jesse Galarneau et Marc-Antoine Griffiths
+ * Date : 21 mai 2018
  */
 package tp2;
 
@@ -11,10 +15,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-/**
- *
- * @author usager
- */
+
 public class tp2 extends Application {
     
     @Override

@@ -637,6 +637,4 @@ public class FXMLDocumentController implements Initializable {
         }
         compteurs();
     }
-
-    
 }
